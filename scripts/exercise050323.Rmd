@@ -1,0 +1,52 @@
+---
+title: "Untitled"
+author: "JHS"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries, include=FALSE}
+# Load packages
+library("tidyverse")
+library("ggplot2")
+library("readxl")
+library("dplyr")
+library("tidyr")
+library("ggfortify")
+library("DT")
+library("reshape2")
+library("knitr")
+library("lubridate")
+```
+
+```{r load data, include=FALSE}
+## Load data 
+data1 <- read.csv("~/BMB_JHS/data/MASTER data file_ALLPARTICIPANTS-(noexc).csv")
+## quick look at the data
+tibble:: glimpse(data1)
+```
+
+
+```{r average VF, include=FALSE}
+## calculate average for VF
+mean(data1$VF_ENG)
+mean(data1$VF_SPA)
+## calculate standard dev for VF
+sd(data1$VF_ENG)
+sd(data1$VF_SPA)
+
+```
+
+
+```{r plot graph, include=FALSE}
+## plot histograms for BSI score (composite)
+ggplot(data1) + geom_point(aes(VF_ENG, VF_SPA))
+
+```
+
+
