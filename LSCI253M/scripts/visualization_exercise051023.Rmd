@@ -1,0 +1,45 @@
+---
+title: "VisualizationPractice_051023"
+author: "JHS"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, include=FALSE}
+# Load packages
+library("tidyverse")
+library("ggplot2")
+```
+
+## Data Visualization Exercise 
+Due: 05/13/23
+
+This R-Markdown will display different types of ggplot graphs
+
+```{r example data}
+exdata <- read.csv("~/BMB_JHS/LSCI253M/data/example_data_for_visualization.csv")
+```
+
+## Graphs: Scatterplot
+Scatterplot showing a positive relationship between f0_1 and f0_2 variables from the data set.
+```{r data visualization: scatterplot}
+  ggplot(data = exdata) +
+    geom_point(mapping = aes(x = f0_1, y = f0_2))
+```
+
+
+## Graphs: Bar Plot
+This graph plots speaker rates recorded for utterances spoken by each subject 
+```{r data visualization: bar plot}
+barplot(exdata$spk_rate, xlab = "Subjects", ylab = "Speaker Rate", main = "Subject Speaker Rates")
+```
+
+## Graphs: Histogram
+Histogram of peaks plotted by frequency
+```{r data visualization: histogram }
+hist(exdata$peak, xlab = "Peaks", ylab = "Frequency", main = "Frequeny of Peaks")
+```
