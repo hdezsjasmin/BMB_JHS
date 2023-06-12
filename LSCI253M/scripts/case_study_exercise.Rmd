@@ -1,0 +1,230 @@
+---
+title: "case_study_RT_accuracy"
+author: ""
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, error=TRUE, cache = FALSE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(lme4)
+```
+
+## Experiment design
+
+Describe the design of the experiment in your own words.
+
+```{r load-data}
+d.all <- read.csv(file = "xie_data_full.csv") %>%
+  select(PartOfExp, Trial, Filename, Word, Response, RT, WorkerId, Condition, List, Speaker, VisualProbeType, Error, CorrectResponse, Block, BaselineRT, ListOrder, ListID, Phase, subjMean_BlockRT, BaselineRT_raw) %>%
+   filter(Condition %in% 
+           c("Mandarin-accented English (same)",
+             "Control (native accent)" 
+         ))
+```
+
+## Data cleaning
+
+### 1. Examine RT distribution
+
+Examine the distribution of RT (subjMean_BlockRT) across subjects. Does it make sense?
+
+```{r distribution-of-subj-wise-mean-RTs-before-exclusions, fig.cap="Distribution of subjects mean RTs by Block and Condition, prior to outlier exclusions.\\label{fig:distribution-of-subj-wise-mean-RTs-before-exclusions}"}
+rt_dist <- d.all %>%
+  
+  
+  
+  
+rt_dist
+
+```
+
+## 2. Data exclusion
+
+Describe the procedure you take to exclude outliers (subjects, trials, etc.).
+
+### Exclusion by subject
+Describe your exclusion criteria based on a subject's performance.
+
+e.g., We want to identify and remove subjects who consistently registered slow response times because they did not perform the task faithfully (e.g., multi-tasking) or because their computer equipment did not provide reliable recording of RTs over the web. 
+
+
+```{r outlier-exclusion-subject}
+## ----------------------------------------
+# identify *eligible* subjects 
+
+# how many RT-based subject exclusions in total
+
+# how many RT-based subject exclusions per Condition
+
+```
+
+Re-examine RT distribution after subject exclusion.
+
+```{r RT-distribution-after-outlier-removal-step1, fig.cap="...\\label{fig:RT-distribution-after-outlier-removal-step1}" }
+
+rt_dist %+% 
+
+```
+
+### Exclusion by trial with extreme RTs
+
+The second step of outlier removal was to exclude trials with atypical RTs. Describe your exclusion criteria by trial and do a second round of exclusion.
+
+Q: Did trial-wise outlier exclusion disproportionately affect any experimental Conditions?
+
+```{r outlier-removal-step2, echo = FALSE}
+dat_out2 <- dat_out1 %>%
+  
+
+```
+
+Q: Examine the mean RTs by block. Do they vary a lot before and after trial exclusion? Describe the effects.
+
+
+## Examine RTs and Accuracy during practice and baseline (after exclusion steps 1 and 2)
+
+Now that we've excluded extreme subject and trial outliers, we can look at the practice and baseline data to assess our high-level predictions about how participants should perform on this web-based task.
+
+1. **One data pattern that we expect to find is that performance (both RTs and accuracy) in the practice and baseline blocks is comparable across experimental conditions.** We expect this because these blocks of the experiment were identical across conditions (i.e., native-accented stimuli presented in the clear).
+    
+    + ... *if performance in the **practice block** differs substantially across conditions*, we would need to consider whether the subjects in each condition were sampled from the same underlying population (e.g., did we run all conditions at approximately the sme time of day?).
+
+    + ... *if performance in the **baseline block** differs substantially across conditions*, we would need to consider whether exposure to different types of speech during the main block of the experiment induced overall differences in task performance (in which case the baseline block doesn't provide a reliable condition-independent "baseline" for normalization purposes).
+
+2. **A second data pattern that we expect to find is evidence of improvement (adaptation) over the course of the task.** One way this would manifest is faster RTs and increased accuracy in the post-experiment baseline block, relative to the practice phase. 
+
+
+## Summary of exclusion criteria:\label{sec:summary-of-exclusion-criteria}
+
+- Participant-level exclusions:
+    + 
+    + 
+    + 
+    
+    
+- Trial-level exclusions:
+    + 
+    + 
+
+We applied the same exclusion criteria across all RT and error analyses.
+
+## Normalize experimental RTs relative to baseline
+
+Now that we've completed all trial-wise RT exclusions, we can calculate _normalized_ RTs that take into account each subject's baseline speed on this task. For this procedure, we adjust the RTs on each trial by subtracting out the corresponding subject's mean RT during the baseline phase. We refer to the resulting measure as _adjusted RTs_.
+
+```{r, echo = TRUE}
+# calculate each subject's mean Baseline RT
+# and subtract that value from experimental RTs
+dat_out2 %<>%
+  group_by(WorkerId) %>%
+  mutate(
+    # calculate subject-wise mean RTs during baseline block
+    meanBaselineRT = mean(RT[PartOfExp == "baseline"]),
+    
+    # calculate normalized RTs
+    AdjustedRT = RT - meanBaselineRT,
+    
+    # calculate subject-wise mean Adjusted RT across Blocks 1-4
+    meanAdjustedRT = mean(AdjustedRT[PartOfExp == "main"])
+  )
+```
+
+Now we want to check the distribution of adjuted RTs to make sure it seems reasonable, given our expectations about task performance.
+
+Note that we expect baseline RTs to be faster on average than RTs during the experimental block, regardless of exposure condition. We expect this for two reasons. First, the baseline task occurred at the end of the experiment, after participants had adapted to the task. Second, _all_ participants heard native accented speech during the baseline phase; hence, there was no need for accent adaptation during this phase.
+
+
+# Modeling strategy
+
+## Model building and assessment
+RTs were analyzed using linear mixed effects regression, as implemented in the lme4 package (version 1.1-10: Bates, Maechler, Bolker, \\& Walker, 2014) in R (R Core Team, 2014). Response accuracy (incorrect vs. correct response) was analyzed using mixed effects logistic regression (see Jaeger, 2008). All mixed effects models were specified with the maximal random effects structure justified by the experimental design: that is, by-subject and by-item random intercepts, by-subject random slopes for all design variables manipulated within subjects, and by-item random slopes for all design variables manipulated within items. If the definitionally maximal model failed to converge within ten thousand iterations, the model was systematically simplified in a step-wise fashion until the model converged. These steps involved removing correlations among random effects; dropping the random effects term with the least variance; and removing fixed effects that were inconsequential for the theory being tested (i.e., counterbalancing nuisance variables).
+
+## Variable coding
+Unless otherwise specified, all numeric predictors were centered and categorical predictors were coded as sum contrasts, in order to reduce collinearity among predictors. 
+
+```{r prep-lmer}
+
+# change to dat_out3 to implement 3rd outlier step
+dat <- dat_out2 %>%
+  filter(PartOfExp == "main") %>%
+  droplevels(.)
+
+## ------------------------------------------ 
+## Define contrast coding for analyses
+## ------------------------------------------ 
+
+dat <- within(dat %>%
+                mutate(Block = factor(Block)), {
+  # helmert coding for Block for C&G-style analysis
+  contrasts(Block) <- contr.helmert(4)
+})
+
+## ------------------------------------------ 
+## EXPERIMENT 1
+exp1 <- dat %>%
+  within(., {
+  # sum coding for accent condition
+  Condition <- factor(Condition)
+	contrasts(Condition) <- cbind("Accented" = c(1,-1))
+	
+	 # sum contrast code List (counterbalancing nuissance factor)
+	List <- factor(List)
+  contrasts(List) <- contr.sum(nlevels(List))
+  colnames(contrasts(List)) <- rownames(contrasts(List))[1:7]
+  
+  # sum code ListID
+  ListID <- factor(ListID)
+  contrasts(ListID) <- contr.sum(nlevels(ListID))
+
+  #sum code ListOrder
+  ListOrder <- factor(ListOrder)
+  contrasts(ListOrder) <- contr.sum(nlevels(ListOrder))
+})
+```
+
+
+# Experiment 1: Adaptation to Mandarin-accented English
+## Participants
+
+Examine the number of participants per condition.
+
+```{r examine-number-of-participants}
+
+```
+## Exp1 Response Times
+
+Visualize the changes of RTs across blocks by condition.
+
+```{r exp1-RTs-by-condition, fig.width = 11, fig.height = 5, fig.cap="Average RTs by exposure condition in Experiment 1.\\label{fig:exp1-RTs-by-condition}"}
+
+
+```
+
+We assess the effect of exposure condition (Mandarin-accented English vs. control) on processing speed separately for RTs during the exposure phase and the test phase. To assess the _change_ in RTs during the course of exposure, we split the 18-trial exposure phase into three blocks of 6 trials and use the resulting Block variable as a categorical predictor of RTs. We use linear mixed-effects models to simultaneously model subject and item random effects.
+
+
+#### Exposure
+A linear mixed effects model was fit to adjusted RTs for correct responses during the exposure phase. 
+
+Describe your fixed effects and random effects. Describe how each variable is coded.
+
+```{r exp1-byBlock-exposureRT, echo = TRUE}
+# Model specification:
+# by-block analysis of RTs during EXPOSURE
+```
+
+
+#### Test
+
+```{r exp1-byBlock-testRT, echo = TRUE}
+# Model specification:
+# by-block analysis of RTs during TEST 
+
+
+```
