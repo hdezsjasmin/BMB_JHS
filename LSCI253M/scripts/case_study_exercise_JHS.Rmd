@@ -21,7 +21,7 @@ Describe the design of the experiment in your own words:
 By employing a brief exposure paradigm, this study looks at adaptation to difficult-to-understand speech by manipulating the form in each condition (speech in noise vs foreign-accented speech) and measuring accuracy and RT performance on the task.
 
 ```{r load-data}
-d.all <- read.csv(file = "~/BMB_JHS/LSCI253M/data/xie_data_full.csv") %>%
+d.all <- read.csv(file = "../data/xie_data_full.csv") %>% ## Jasmine: here it is better to use a relative path so that your collaborators can load the file; see my change
   select(PartOfExp, Trial, Filename, Word, Response, RT, WorkerId, Condition, List, Speaker, VisualProbeType, Error, CorrectResponse, Block, BaselineRT, ListOrder, ListID, Phase, subjMean_BlockRT, BaselineRT_raw) %>%
    filter(Condition %in% 
            c("Mandarin-accented English (same)",
@@ -337,9 +337,11 @@ head(dat_out2, n=20)
 
 ```{r exp1-byBlock-testRT, echo = TRUE}
 # Model specification:
-mod = lmer(RT~ BaselineRT + (Block|Condition), data = dat_out2)
+mod = lmerTest::lmer(RT~ BaselineRT + (Block|Condition), data = dat_out2)
 # by-block analysis of RTs during TEST 
 
+## Jasmin: here in order to see the output of the model, we need to present the results (lmerTest may be a better package than lme4 for this purpose as it gives you the p value directly)
+summary(mod)
 
-
+## Jasmin: the model above actually does not inform us of the main factors we are interested in. It only tells us whether there is an impact of BaselineRT on trial-level RTs. Reconsider?
 ```
